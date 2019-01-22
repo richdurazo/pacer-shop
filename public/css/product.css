@@ -53,3 +53,7 @@ button:active {
 .product__description {
   text-align: center;
 }
+img {
+  max-height: 500px;
+  max-width: 300px;
+}
