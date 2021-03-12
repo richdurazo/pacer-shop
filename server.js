@@ -8,10 +8,12 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const errorController = require('./controllers/error');
-// const mongoConnect = require('./util/database').mongoConnect;
+require('dotenv').config();
+
 const User = require('./models/user');
 
-const MONGODB_URI = 'mongodb+srv://richard:JJMIpoBmvAubPelh@cluster0-1sjtq.mongodb.net/shop?retryWrites=true';
+const MONGODB_URI = process.env.MONGODB_URI;
+console.log(MONGODB_URI)
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop')
@@ -24,10 +26,7 @@ const store = new MongoDBStore({
 });
 const csrfProtection = csrf();
 
-// tell express what are view engine is and where they can be found
-// we installed ejs as our templating engine
 app.set('view engine', 'ejs');
-// this is the default setting but its added anyway and dont need to add if we are using views folder
 app.set('views', 'views');
 
 app.use(bodyParser.urlencoded({
@@ -36,7 +35,7 @@ app.use(bodyParser.urlencoded({
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
     session({
-        secret: 'mySecret',
+        secret: process.env.SESSION_KEY,
         resave: false,
         saveUninitialized: false,
         store: store
@@ -85,6 +84,7 @@ app.use((error, req, res, next) => {
 mongoose
     .connect(MONGODB_URI)
     .then(result => {
+        console.log('result')
         app.listen(3000)
     })
     .catch(err => console.log(err))
