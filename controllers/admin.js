@@ -34,7 +34,6 @@ exports.postAddProduct = async(req, res, next) => {
             hasError: true,
             product: {
                 title: title,
-                imageUrl: image.location,
                 price: price,
                 description: description,
             },
@@ -51,7 +50,6 @@ exports.postAddProduct = async(req, res, next) => {
             userId: req.user
         });
         const newProduct = await product.save();
-        console.log(newProduct);
         res.redirect('/admin/products')
     } catch(err) {
         const error = new Error(err);
@@ -92,6 +90,57 @@ exports.postEditProduct = async(req, res, next) => {
     const { productId, title, price, description } = req.body
     const image = req.file;
     const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('admin/edit-product', {
+            pageTitle: 'Edit Product',
+            path: '/admin/edit-product',
+            editing: true,
+            hasError: true,
+            product: {
+                title: title,
+                price: price,
+                description: description,
+                _id: productId
+            },
+            errorMessage: errors.array()[0].msg,
+            validationErrors: errors.array()
+        });
+    }
+    try {
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ msg: 'product not found'}); 
+        }
+        if (product.userId.toString() !== req.user._id.toString()) {
+            return res.redirect('/');
+        }
+        product.title = title;
+        product.price = price;
+        product.description = description;
+        if (image) {
+            product.imageUrl = image.location;
+        }
+        const updatedProduct = await product.save();
+        if (image) {
+            let key = product.imageUrl.split('/').pop();
+            let params = {Bucket: process.env.AWS_BUCKET_NAME, Key: key}
+            s3.deleteObject(params, (err, data) => {
+                if (err) console.log(err, err.stack);
+                else console.log('deleted');
+            });
+        }
+        res.redirect('/admin/products');
+    } catch(err) {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+    }
+};
+
+exports.editProduct = async(req, res, next) => {
+    const { productId, title, price, description } = req.body
+    const image = req.file;
+    const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
         return res.status(422).render('admin/edit-product', {
@@ -101,7 +150,6 @@ exports.postEditProduct = async(req, res, next) => {
             hasError: true,
             product: {
                 title: title,
-                imageUrl: image.location,
                 price: price,
                 description: description,
                 _id: productId

@@ -31,7 +31,7 @@ router.get('/add-product', isAuth, adminController.getAddProduct);
 router.get('/products', isAuth, adminController.getProducts)
 
 router.post(
-    '/add-product', 
+    '/add-product',
     [
         body('title')
         .isString()
@@ -39,7 +39,6 @@ router.post(
             min: 3
         })
         .trim(),
-        body('imageUrl').isURL(),
         body('price').isFloat(),
         body('description').isLength({
             min: 5,
@@ -49,34 +48,79 @@ router.post(
     isAuth,
     multer({
         storage: multerS3({
-          s3: s3,
-          bucket: process.env.AWS_BUCKET_NAME,
-          key: function(req, file, cb) {
-            cb(null, new Date().toISOString() + '-' + file.originalname);
-          }
+            s3: s3,
+            bucket: process.env.AWS_BUCKET_NAME,
+            key: function(req, file, cb) {
+                cb(null, new Date().toISOString() + '-' + file.originalname);
+            }
         }),
         fileFilter: fileFilter,
         limits: { fileSize: 4 * 1024 * 1024 }
-      }).single('image'),
+    }).single('image'),
     adminController.postAddProduct
 );
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct)
+router.post('/edit-product', 
+// TODO: figure out why validation breaks editing
+// [
+//     body('title')
+//     .isString()
+//     .isLength({
+//         min: 3
+//     })
+//     .trim(),
+//     body('price').isFloat(),
+//     body('description').isLength({
+//         min: 5,
+//         max: 400
+//     }).trim()
+// ],
+isAuth,
+multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET_NAME,
+        key: function(req, file, cb) {
+            cb(null, new Date().toISOString() + '-' + file.originalname);
+        },
+    }),
+    fileFilter: fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024}
+}).single('image'),
+adminController.postEditProduct);
 
-router.post('/edit-product', [
-    body('title')
-    .isString()
-    .isLength({
-        min: 3
-    })
-    .trim(),
-    body('imageUrl').isURL(),
-    body('price').isFloat(),
-    body('description').isLength({
-        min: 5,
-        max: 400
-    }).trim()
-], isAuth, adminController.postEditProduct);
+router.put(
+    '/:id',
+    [
+        body('title')
+        .isString()
+        .isLength({
+            min: 3
+        })
+        .trim(),
+        body('price').isFloat(),
+        body('description').isLength({
+            min: 5,
+            max: 400
+        }).trim()
+    ],
+    isAuth,
+    multer({
+        storage: multerS3({
+            s3: s3,
+            bucket: process.env.AWS_BUCKET_NAME,
+            key: function(req, file, cb) {
+                cb(null, new Date().toISOString() + '-' + file.originalname);
+            },
+        }),
+        fileFilter: fileFilter,
+        limits: { fileSize: 5 * 1024 * 1024}
+    }).single('image'),
+    
+    adminController.editProduct
+
+)
 
 router.post('/delete-product', isAuth, adminController.postDeleteProduct)
 
