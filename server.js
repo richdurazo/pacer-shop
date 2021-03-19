@@ -1,23 +1,19 @@
 const path = require('path');
-
 const express = require('express');
+require('dotenv').config();
+
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
-const errorController = require('./controllers/error');
-require('dotenv').config();
 
+const errorController = require('./controllers/error');
 const User = require('./models/user');
 
 const MONGODB_URI = process.env.MONGODB_URI;
-console.log(MONGODB_URI)
 
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop')
-const authRoutes = require('./routes/auth')
 
 const app = express();
 const store = new MongoDBStore({
@@ -29,10 +25,15 @@ const csrfProtection = csrf();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
+
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.use(
     session({
         secret: process.env.SESSION_KEY,
@@ -84,7 +85,6 @@ app.use((error, req, res, next) => {
 mongoose
     .connect(MONGODB_URI)
     .then(result => {
-        console.log('result')
         app.listen(3000)
     })
     .catch(err => console.log(err))
