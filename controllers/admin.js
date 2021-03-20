@@ -203,12 +203,12 @@ exports.getProducts = async(req, res, next) => {
     }
 }
 
-exports.postDeleteProduct = async(req, res, next) => {
-    const { productId } = req.body;
+exports.deleteProduct = async(req, res, next) => {
+    const { productId } = req.params;
     try {
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({ msg: 'error deleting page not found'});
+            return next(new Error('Product not found.'));
         }
         let key = product.imageUrl.split('/').pop();
         let params = {Bucket: process.env.AWS_BUCKET_NAME, Key: key}
@@ -220,11 +220,12 @@ exports.postDeleteProduct = async(req, res, next) => {
             _id: productId,
             userId: req.user._id
         });
-        console.log('Deleted Product');
-        res.redirect('/admin/products')
+        res.status(200).json({
+            message: "success!"
+        });
     } catch(err) {
-        const error = new Error(err);
-        error.httpStatusCode = 500;
-        return next(error);
+        res.status(500).json({
+            message: "deleting product failed."
+        });
     }
 }
