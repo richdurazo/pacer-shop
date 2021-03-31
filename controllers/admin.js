@@ -10,6 +10,7 @@ aws.config.update({
 });
 const s3 = new aws.S3();
 // const s3 = new aws.S3();
+// const s3 = new aws.S3();
 
 exports.getAddProduct = (req, res, next) => {
     res.render('admin/edit-product', {
@@ -27,6 +28,7 @@ exports.postAddProduct = async(req, res, next) => {
     const errors = validationResult(req);
     const image = req.file;
     if (!image) {
+        console.log('No image')
         //TODO: change to render change frontend to react
         return res.status(422).render('admin/edit-product', {
             pageTitle: 'Edit Product',
