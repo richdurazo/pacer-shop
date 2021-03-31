@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator/check');
 
 const Product = require('../models/product');
-
+// adding a comment for task 2
 const aws = require('aws-sdk');
 aws.config.update({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
