@@ -9,6 +9,7 @@ aws.config.update({
     region: process.env.AWS_REGION
 });
 const s3 = new aws.S3();
+// const s3 = new aws.S3();
 
 exports.getAddProduct = (req, res, next) => {
     res.render('admin/edit-product', {
